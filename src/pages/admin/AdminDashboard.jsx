@@ -8,7 +8,7 @@ import { useStore } from '../../store/useStore';
 const fmt = n => n >= 100000 ? `₹${(n / 100000).toFixed(1)}L` : `₹${n.toLocaleString('en-IN')}`;
 
 export default function AdminDashboard() {
-  const orders = useStore(s => s.orders);
+  const orders = useStore(s => s.orders || []);
   const recent = orders.slice(0, 5);
 
   return (
@@ -99,9 +99,9 @@ export default function AdminDashboard() {
                 {recent.map(o => (
                   <tr key={o.id}>
                     <td className="py-3 font-mono text-xs text-primary/70">{o.id}</td>
-                    <td className="py-3 font-medium text-primary">{o.customer}</td>
-                    <td className="py-3 text-primary/70">₹{o.amount.toLocaleString('en-IN')}</td>
-                    <td className="py-3"><Badge status={o.status} /></td>
+                    <td className="py-3 font-medium text-primary">{o.customer || o.shippingAddress?.name || 'Customer'}</td>
+                    <td className="py-3 text-primary/70">₹{(o.amount || 0).toLocaleString('en-IN')}</td>
+                    <td className="py-3"><Badge status={o.status || 'delivered'} /></td>
                   </tr>
                 ))}
               </tbody>

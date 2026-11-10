@@ -2,9 +2,21 @@ import { useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { Store, Bell, Palette, Check } from 'lucide-react';
 
+const defaultSettings = {
+  storeName: 'THREADLINE Atelier',
+  storeEmail: 'concierge@threadline.com',
+  storePhone: '+91 (80) 4123-8899',
+  currency: 'INR',
+  theme: 'light',
+  emailNotifications: true,
+  orderAlerts: true,
+  stockAlerts: true,
+  marketingEmails: false,
+};
+
 export default function AdminSettings() {
   const { settings, updateSettings } = useStore();
-  const [form, setForm] = useState({ ...settings });
+  const [form, setForm] = useState({ ...defaultSettings, ...settings });
   const [saved, setSaved] = useState(false);
 
   const handleChange = (e) => {
@@ -18,7 +30,7 @@ export default function AdminSettings() {
 
   const handleSave = (e) => {
     e.preventDefault();
-    updateSettings(form);
+    if (updateSettings) updateSettings(form);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -42,7 +54,7 @@ export default function AdminSettings() {
               <input
                 type="text"
                 name="storeName"
-                value={form.storeName}
+                value={form.storeName || ''}
                 onChange={handleChange}
                 className="input"
               />
@@ -52,7 +64,7 @@ export default function AdminSettings() {
               <input
                 type="email"
                 name="storeEmail"
-                value={form.storeEmail}
+                value={form.storeEmail || ''}
                 onChange={handleChange}
                 className="input"
               />
@@ -62,7 +74,7 @@ export default function AdminSettings() {
               <input
                 type="text"
                 name="storePhone"
-                value={form.storePhone}
+                value={form.storePhone || ''}
                 onChange={handleChange}
                 className="input"
               />
@@ -71,7 +83,7 @@ export default function AdminSettings() {
               <label className="block text-xs font-medium text-primary/60 mb-1">Base Currency</label>
               <select
                 name="currency"
-                value={form.currency}
+                value={form.currency || 'INR'}
                 onChange={handleChange}
                 className="input"
               >
@@ -186,4 +198,3 @@ export default function AdminSettings() {
     </div>
   );
 }
-

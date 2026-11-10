@@ -1,18 +1,126 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { MOCK_PRODUCTS, MOCK_REVIEWS, MOCK_ORDERS } from '../data/mockData';
+import { MOCK_PRODUCTS, MOCK_REVIEWS, MOCK_ORDERS, MOCK_CATEGORIES } from '../data/mockData';
+import { customers as initialCustomers } from '../data/customers';
+
+// Normalize product properties so both admin and storefront can access cleanly
+const normalizedProducts = MOCK_PRODUCTS.map(p => ({
+  ...p,
+  image: p.images?.[0] || p.image || '',
+  status: p.totalStock === 0 ? 'out-of-stock' : p.totalStock <= 10 ? 'low-stock' : 'active',
+}));
+
+// Normalize orders
+const normalizedOrders = MOCK_ORDERS.map(o => ({
+  ...o,
+  customer: o.customer || o.shippingAddress?.name || 'Valued Customer',
+  email: o.email || 'customer@threadline.com',
+  phone: o.phone || o.shippingAddress?.phone || '+91 98765 43210',
+  address: o.address || o.shippingAddress?.address || '',
+  payment: o.payment || 'Paid',
+  status: o.status ? o.status.toLowerCase() : 'delivered',
+}));
 
 export const useStore = create(
   persist(
     (set, get) => ({
-      // Products catalog
-      products: MOCK_PRODUCTS,
+      // Products catalog (shared between Admin & Customer)
+      products: normalizedProducts,
+      addProduct: (prod) => set(s => ({
+        products: [
+          {
+            ...prod,
+            image: prod.image || prod.images?.[0] || '',
+            images: prod.images?.length > 0 ? prod.images : [prod.image],
+            status: prod.status || (prod.totalStock === 0 ? 'out-of-stock' : prod.totalStock <= 10 ? 'low-stock' : 'active'),
+          },
+          ...s.products,
+        ],
+      })),
+      updateProduct: (id, updates) => set(s => ({
+        products: s.products.map(p => (p.id === id ? { ...p, ...updates } : p)),
+      })),
+      deleteProduct: (id) => set(s => ({
+        products: s.products.filter(p => p.id !== id),
+      })),
 
-      // Cart
+      // Categories (shared)
+      categories: MOCK_CATEGORIES.map(c => ({
+        ...c,
+        productCount: c.count || 4,
+        description: c.tag || 'Luxury garments and tailored fashion',
+      })),
+      addCategory: (cat) => set(s => ({ categories: [cat, ...s.categories] })),
+      updateCategory: (id, updates) => set(s => ({
+        categories: s.categories.map(c => (c.id === id ? { ...c, ...updates } : c)),
+      })),
+      deleteCategory: (id) => set(s => ({
+        categories: s.categories.filter(c => c.id !== id),
+      })),
+
+      // Orders (shared)
+      orders: normalizedOrders,
+      updateOrderStatus: (id, status) => set(s => ({
+        orders: s.orders.map(o => (o.id === id ? { ...o, status: status.toLowerCase() } : o)),
+      })),
+      addOrder: (orderData) => {
+        const id = `TL-ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+        const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const newOrder = {
+          ...orderData,
+          id,
+          date,
+          customer: orderData.shippingAddress?.name || 'Arjun Mehta',
+          email: 'arjun.mehta@threadline.com',
+          phone: orderData.shippingAddress?.phone || '+91 98765 43210',
+          address: orderData.shippingAddress?.address || '',
+          payment: 'Paid',
+          status: 'confirmed',
+          timeline: [
+            { step: 'Order Placed & Confirmed', date: 'Just Now', done: true },
+            { step: 'Quality Checked & Packed at Atelier', date: 'Expected Today', done: false },
+            { step: 'Dispatched via BlueDart Express', date: 'Expected Tomorrow', done: false },
+            { step: 'Out for Courier Delivery', date: 'Pending', done: false },
+            { step: 'Delivered to Customer', date: 'Pending', done: false },
+          ],
+        };
+        set(s => ({ orders: [newOrder, ...s.orders] }));
+        return newOrder;
+      },
+
+      // Customers (for Admin)
+      customers: initialCustomers,
+
+      // Admin Profile
+      adminProfile: {
+        name: 'Administrator',
+        email: 'admin@threadline.com',
+        phone: '+91 (80) 4123-8899',
+        role: 'Master Administrator',
+        avatar: 'AD',
+        store: 'THREADLINE Atelier',
+      },
+      updateAdminProfile: (updates) => set(s => ({ adminProfile: { ...s.adminProfile, ...updates } })),
+
+      // Admin & Store Settings
+      settings: {
+        storeName: 'THREADLINE Atelier',
+        storeEmail: 'concierge@threadline.com',
+        storePhone: '+91 (80) 4123-8899',
+        currency: 'INR',
+        theme: 'light',
+        emailNotifications: true,
+        orderAlerts: true,
+        stockAlerts: true,
+        marketingEmails: false,
+      },
+      updateSettings: (updates) => set(s => ({ settings: { ...s.settings, ...updates } })),
+
+      // Cart (Storefront)
       cart: [
         {
           key: 'TL-101-40 (M)-Crisp White',
-          product: MOCK_PRODUCTS[0],
+          product: normalizedProducts[0],
           size: '40 (M)',
           color: 'Crisp White',
           qty: 1,
@@ -39,7 +147,7 @@ export const useStore = create(
           return;
         }
         set(state => ({
-          cart: state.cart.map(item => item.key === key ? { ...item, qty } : item),
+          cart: state.cart.map(item => (item.key === key ? { ...item, qty } : item)),
         }));
       },
       removeFromCart: (key) => {
@@ -47,8 +155,8 @@ export const useStore = create(
       },
       clearCart: () => set({ cart: [] }),
 
-      // Wishlist
-      wishlist: [MOCK_PRODUCTS[1], MOCK_PRODUCTS[6]],
+      // Wishlist (Storefront)
+      wishlist: [normalizedProducts[1], normalizedProducts[6]],
       addToWishlist: (product) => {
         const { wishlist } = get();
         if (!wishlist.some(p => p.id === product.id)) {
@@ -68,14 +176,14 @@ export const useStore = create(
       },
 
       // Recently viewed products
-      recentlyViewed: [MOCK_PRODUCTS[0], MOCK_PRODUCTS[2]],
+      recentlyViewed: [normalizedProducts[0], normalizedProducts[2]],
       addRecentlyViewed: (product) => {
         const { recentlyViewed } = get();
         const filtered = recentlyViewed.filter(p => p.id !== product.id);
         set({ recentlyViewed: [product, ...filtered].slice(0, 6) });
       },
 
-      // Customer Profile
+      // Customer Profile (Storefront)
       profile: {
         name: 'Arjun Mehta',
         email: 'arjun.mehta@threadline.com',
@@ -88,7 +196,7 @@ export const useStore = create(
       },
       updateProfile: (updated) => set(state => ({ profile: { ...state.profile, ...updated } })),
 
-      // Delivery Addresses
+      // Delivery Addresses (Storefront)
       addresses: [
         {
           id: 'ADDR-01',
@@ -143,7 +251,7 @@ export const useStore = create(
         }));
       },
 
-      // Customer Reviews
+      // Customer Reviews (Storefront)
       reviews: MOCK_REVIEWS,
       addReview: (newReview) => {
         const rev = {
@@ -159,35 +267,15 @@ export const useStore = create(
       },
       updateReview: (id, updated) => {
         set(state => ({
-          reviews: state.reviews.map(r => r.id === id ? { ...r, ...updated } : r),
+          reviews: state.reviews.map(r => (r.id === id ? { ...r, ...updated } : r)),
         }));
       },
       deleteReview: (id) => {
         set(state => ({ reviews: state.reviews.filter(r => r.id !== id) }));
       },
-
-      // Orders
-      orders: MOCK_ORDERS,
-      addOrder: (orderData) => {
-        const newOrder = {
-          ...orderData,
-          id: `TL-ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-          date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-          status: 'Confirmed',
-          timeline: [
-            { step: 'Order Placed & Confirmed', date: 'Just Now', done: true },
-            { step: 'Quality Checked & Packed at Atelier', date: 'Expected Today', done: false },
-            { step: 'Dispatched via BlueDart Express', date: 'Expected Tomorrow', done: false },
-            { step: 'Out for Courier Delivery', date: 'Pending', done: false },
-            { step: 'Delivered to Customer', date: 'Pending', done: false },
-          ],
-        };
-        set(state => ({ orders: [newOrder, ...state.orders] }));
-        return newOrder;
-      },
     }),
     {
-      name: 'threadline-store-storage',
+      name: 'threadline-store-storage-v2',
       partialize: (state) => ({
         cart: state.cart,
         wishlist: state.wishlist,
@@ -195,6 +283,8 @@ export const useStore = create(
         addresses: state.addresses,
         reviews: state.reviews,
         orders: state.orders,
+        adminProfile: state.adminProfile,
+        settings: state.settings,
       }),
     }
   )

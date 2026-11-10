@@ -41,19 +41,21 @@ function CategoryForm({ initial = {}, onSave, onClose }) {
 }
 
 export default function AdminCategories() {
-  const { categories, addCategory, updateCategory, deleteCategory, products } = useStore();
+  const { categories = [], addCategory, updateCategory, deleteCategory, products = [] } = useStore();
   const [modal, setModal] = useState(null); // null | 'add' | {category}
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const getCount = (name) => products.filter(p => p.category === name).length;
+  const getCount = (name) => (products || []).filter(p => (p.category || '').toLowerCase() === (name || '').toLowerCase()).length;
 
   const handleSave = (data) => {
     if (modal === 'add') {
-      addCategory({ ...data, id: `C${Date.now()}`, productCount: 0 });
-    } else {
-      updateCategory(modal.id, data);
+      if (addCategory) addCategory({ ...data, id: `C${Date.now()}`, productCount: 0 });
+    } else if (modal && modal.id) {
+      if (updateCategory) updateCategory(modal.id, data);
     }
   };
+
+  const list = categories || [];
 
   return (
     <div className="space-y-5">
@@ -61,12 +63,12 @@ export default function AdminCategories() {
         <button className="btn-primary" onClick={() => setModal('add')}><Plus size={16} /> Add Category</button>
       </div>
 
-      {categories.length === 0 ? (
+      {list.length === 0 ? (
         <EmptyState icon={Tag} title="No categories yet" description="Add your first product category." />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {categories.map(cat => (
-            <div key={cat.id} className="card p-0 overflow-hidden group">
+          {list.map(cat => (
+            <div key={cat.id || cat.name} className="card p-0 overflow-hidden group">
               <div className="relative h-36">
                 <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" onError={e => { e.target.src = 'https://via.placeholder.com/300x200'; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-transparent" />
@@ -98,11 +100,10 @@ export default function AdminCategories() {
           <p className="text-sm text-primary/70 mb-6">Delete <strong>{confirmDelete.name}</strong>? Products in this category won't be removed.</p>
           <div className="flex justify-end gap-3">
             <button className="btn-outline" onClick={() => setConfirmDelete(null)}>Cancel</button>
-            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" onClick={() => { deleteCategory(confirmDelete.id); setConfirmDelete(null); }}>Delete</button>
+            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" onClick={() => { if (deleteCategory) deleteCategory(confirmDelete.id); setConfirmDelete(null); }}>Delete</button>
           </div>
         </Modal>
       )}
     </div>
   );
 }
-

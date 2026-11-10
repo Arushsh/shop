@@ -82,3 +82,4 @@ npm run build
 - **Warm Gold Accent**: `#C49A6C`
 - **Luxury Canvas**: `#F7F7F5`
 - **Surface Cards**: `#FFFFFF`
+

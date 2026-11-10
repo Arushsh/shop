@@ -2,9 +2,18 @@ import { useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { User, Mail, Phone, Building, ShieldCheck, Check } from 'lucide-react';
 
+const defaultProfile = {
+  name: 'Administrator',
+  email: 'admin@threadline.com',
+  phone: '+91 (80) 4123-8899',
+  role: 'Master Administrator',
+  avatar: 'AD',
+  store: 'THREADLINE Atelier',
+};
+
 export default function AdminProfile() {
   const { adminProfile, updateAdminProfile } = useStore();
-  const [formData, setFormData] = useState({ ...adminProfile });
+  const [formData, setFormData] = useState({ ...defaultProfile, ...adminProfile });
   const [saved, setSaved] = useState(false);
 
   const handleChange = (e) => {
@@ -15,7 +24,7 @@ export default function AdminProfile() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    updateAdminProfile(formData);
+    if (updateAdminProfile) updateAdminProfile(formData);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -58,7 +67,7 @@ export default function AdminProfile() {
               <input
                 type="text"
                 name="name"
-                value={formData.name}
+                value={formData.name || ''}
                 onChange={handleChange}
                 required
                 className="input"
@@ -72,7 +81,7 @@ export default function AdminProfile() {
               <input
                 type="email"
                 name="email"
-                value={formData.email}
+                value={formData.email || ''}
                 onChange={handleChange}
                 required
                 className="input"
@@ -86,7 +95,7 @@ export default function AdminProfile() {
               <input
                 type="text"
                 name="phone"
-                value={formData.phone}
+                value={formData.phone || ''}
                 onChange={handleChange}
                 className="input"
               />
@@ -99,7 +108,7 @@ export default function AdminProfile() {
               <input
                 type="text"
                 name="store"
-                value={formData.store}
+                value={formData.store || ''}
                 onChange={handleChange}
                 className="input"
               />
@@ -110,7 +119,7 @@ export default function AdminProfile() {
               <input
                 type="text"
                 name="role"
-                value={formData.role}
+                value={formData.role || ''}
                 onChange={handleChange}
                 className="input bg-primary/2"
               />
@@ -122,7 +131,7 @@ export default function AdminProfile() {
                 type="text"
                 name="avatar"
                 maxLength={3}
-                value={formData.avatar}
+                value={formData.avatar || 'AD'}
                 onChange={handleChange}
                 className="input"
               />
@@ -144,4 +153,3 @@ export default function AdminProfile() {
     </div>
   );
 }
-

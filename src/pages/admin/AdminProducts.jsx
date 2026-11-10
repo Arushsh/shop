@@ -8,7 +8,7 @@ import EmptyState from '../../components/common/EmptyState';
 
 const SIZES_SHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const COLORS_ALL = ['White', 'Black', 'Navy', 'Khaki', 'Olive', 'Grey', 'Maroon', 'Beige', 'Charcoal', 'Light Blue'];
-const CATEGORIES = ['Shirts', 'Pants', 'Blazers', 'Kurtas', 'T-Shirts', 'Jackets', 'Activewear', 'Ethnic Wear', 'Sweatshirts'];
+const CATEGORIES = ['Shirts', 'Pants', 'Blazers', 'Kurtas', 'T-Shirts', 'Jackets', 'Activewear', 'Ethnic Wear', 'Sweatshirts', 'Women', 'Kids', 'Jeans', 'Trousers'];
 const STATUSES = ['active', 'low-stock', 'out-of-stock'];
 
 const blank = () => ({
@@ -19,9 +19,9 @@ const blank = () => ({
 });
 
 function ProductForm({ initial, onSave, onClose }) {
-  const [form, setForm] = useState({ ...blank(), ...initial });
+  const [form, setForm] = useState({ ...blank(), ...initial, image: initial.image || initial.images?.[0] || blank().image });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const toggle = (k, v) => set(k, form[k].includes(v) ? form[k].filter(x => x !== v) : [...form[k], v]);
+  const toggle = (k, v) => set(k, (form[k] || []).includes(v) ? form[k].filter(x => x !== v) : [...(form[k] || []), v]);
 
   const handleSave = () => {
     if (!form.name || !form.price) return alert('Name and price required');
@@ -29,7 +29,8 @@ function ProductForm({ initial, onSave, onClose }) {
       ...form,
       price: Number(form.price),
       originalPrice: Number(form.originalPrice) || Number(form.price),
-      totalStock: Number(form.totalStock),
+      totalStock: Number(form.totalStock) || 0,
+      images: form.images?.length > 0 ? form.images : [form.image],
       stock: {},
     });
     onClose();
@@ -78,7 +79,7 @@ function ProductForm({ initial, onSave, onClose }) {
           {SIZES_SHIRT.map(s => (
             <button key={s} type="button"
               onClick={() => toggle('sizes', s)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${form.sizes.includes(s) ? 'bg-primary text-white border-primary' : 'border-primary/15 text-primary/60 hover:border-primary/30'}`}>
+              className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${(form.sizes || []).includes(s) ? 'bg-primary text-white border-primary' : 'border-primary/15 text-primary/60 hover:border-primary/30'}`}>
               {s}
             </button>
           ))}
@@ -91,7 +92,7 @@ function ProductForm({ initial, onSave, onClose }) {
           {COLORS_ALL.map(c => (
             <button key={c} type="button"
               onClick={() => toggle('colors', c)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${form.colors.includes(c) ? 'bg-primary text-white border-primary' : 'border-primary/15 text-primary/60 hover:border-primary/30'}`}>
+              className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${(form.colors || []).map(x => typeof x === 'object' ? x.name : x).includes(c) ? 'bg-primary text-white border-primary' : 'border-primary/15 text-primary/60 hover:border-primary/30'}`}>
               {c}
             </button>
           ))}
@@ -117,7 +118,7 @@ function ProductForm({ initial, onSave, onClose }) {
 }
 
 export default function AdminProducts() {
-  const { products, addProduct, updateProduct, deleteProduct } = useStore();
+  const { products = [], addProduct, updateProduct, deleteProduct } = useStore();
   const [view, setView] = useState('table');
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -127,18 +128,21 @@ export default function AdminProducts() {
 
   const categories = ['All', ...CATEGORIES];
 
-  const filtered = products.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase());
+  const filtered = (products || []).filter(p => {
+    const pName = p.name || '';
+    const pSku = p.sku || '';
+    const pStatus = p.status || (p.totalStock === 0 ? 'out-of-stock' : p.totalStock <= 10 ? 'low-stock' : 'active');
+    const matchSearch = pName.toLowerCase().includes(search.toLowerCase()) || pSku.toLowerCase().includes(search.toLowerCase());
     const matchCat = categoryFilter === 'All' || p.category === categoryFilter;
-    const matchStatus = statusFilter === 'All' || p.status === statusFilter;
+    const matchStatus = statusFilter === 'All' || pStatus === statusFilter;
     return matchSearch && matchCat && matchStatus;
   });
 
   const handleSave = (data) => {
     if (data.id) {
-      updateProduct(data.id, data);
+      if (updateProduct) updateProduct(data.id, data);
     } else {
-      addProduct({ ...data, id: `P${Date.now()}` });
+      if (addProduct) addProduct({ ...data, id: `P${Date.now()}` });
     }
   };
 
@@ -175,62 +179,73 @@ export default function AdminProducts() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-primary/5">
-                {filtered.map(p => (
-                  <tr key={p.id} className="hover:bg-primary/2 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <img src={p.image} alt={p.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" onError={e => { e.target.src = 'https://via.placeholder.com/40'; }} />
-                        <div>
-                          <p className="font-medium text-primary text-sm">{p.name}</p>
-                          <p className="text-xs text-primary/40">{p.sizes.join(', ')}</p>
+                {filtered.map(p => {
+                  const pImg = p.image || p.images?.[0] || 'https://via.placeholder.com/40';
+                  const pStatus = p.status || (p.totalStock === 0 ? 'out-of-stock' : p.totalStock <= 10 ? 'low-stock' : 'active');
+                  const pSizes = (p.sizes || []).map(s => typeof s === 'object' ? s.name : s).join(', ');
+
+                  return (
+                    <tr key={p.id} className="hover:bg-primary/2 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img src={pImg} alt={p.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" onError={e => { e.target.src = 'https://via.placeholder.com/40'; }} />
+                          <div>
+                            <p className="font-medium text-primary text-sm">{p.name}</p>
+                            <p className="text-xs text-primary/40">{pSizes}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-primary/70">{p.category}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-primary/50">{p.sku}</td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <span className="font-semibold text-primary">₹{p.price.toLocaleString('en-IN')}</span>
-                        {p.originalPrice > p.price && (
-                          <span className="text-xs text-primary/35 line-through ml-1">₹{p.originalPrice.toLocaleString('en-IN')}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-primary/70">{p.totalStock}</td>
-                    <td className="px-4 py-3"><Badge status={p.status} /></td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button className="p-1.5 hover:bg-primary/5 rounded-lg text-primary/50 hover:text-primary transition-colors" onClick={() => setModal(p)}><Edit2 size={14} /></button>
-                        <button className="p-1.5 hover:bg-red-50 rounded-lg text-primary/50 hover:text-red-600 transition-colors" onClick={() => setConfirmDelete(p)}><Trash2 size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 py-3 text-primary/70">{p.category}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-primary/50">{p.sku}</td>
+                      <td className="px-4 py-3">
+                        <div>
+                          <span className="font-semibold text-primary">₹{(p.price || 0).toLocaleString('en-IN')}</span>
+                          {p.originalPrice > p.price && (
+                            <span className="text-xs text-primary/35 line-through ml-1">₹{p.originalPrice.toLocaleString('en-IN')}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-primary/70">{p.totalStock ?? 0}</td>
+                      <td className="px-4 py-3"><Badge status={pStatus} /></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <button className="p-1.5 hover:bg-primary/5 rounded-lg text-primary/50 hover:text-primary transition-colors" onClick={() => setModal(p)}><Edit2 size={14} /></button>
+                          <button className="p-1.5 hover:bg-red-50 rounded-lg text-primary/50 hover:text-red-600 transition-colors" onClick={() => setConfirmDelete(p)}><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filtered.map(p => (
-            <div key={p.id} className="card p-0 overflow-hidden group">
-              <div className="relative">
-                <img src={p.image} alt={p.name} className="w-full h-48 object-cover" onError={e => { e.target.src = 'https://via.placeholder.com/200'; }} />
-                <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button className="p-2 bg-white rounded-lg text-primary hover:bg-accent hover:text-white transition-colors" onClick={() => setModal(p)}><Edit2 size={14} /></button>
-                  <button className="p-2 bg-white rounded-lg text-primary hover:bg-red-500 hover:text-white transition-colors" onClick={() => setConfirmDelete(p)}><Trash2 size={14} /></button>
+          {filtered.map(p => {
+            const pImg = p.image || p.images?.[0] || 'https://via.placeholder.com/200';
+            const pStatus = p.status || (p.totalStock === 0 ? 'out-of-stock' : p.totalStock <= 10 ? 'low-stock' : 'active');
+
+            return (
+              <div key={p.id} className="card p-0 overflow-hidden group">
+                <div className="relative">
+                  <img src={pImg} alt={p.name} className="w-full h-48 object-cover" onError={e => { e.target.src = 'https://via.placeholder.com/200'; }} />
+                  <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button className="p-2 bg-white rounded-lg text-primary hover:bg-accent hover:text-white transition-colors" onClick={() => setModal(p)}><Edit2 size={14} /></button>
+                    <button className="p-2 bg-white rounded-lg text-primary hover:bg-red-500 hover:text-white transition-colors" onClick={() => setConfirmDelete(p)}><Trash2 size={14} /></button>
+                  </div>
+                </div>
+                <div className="p-3">
+                  <p className="font-medium text-sm text-primary truncate">{p.name}</p>
+                  <p className="text-xs text-primary/40">{p.category}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="font-bold text-primary text-sm">₹{(p.price || 0).toLocaleString('en-IN')}</span>
+                    <Badge status={pStatus} />
+                  </div>
                 </div>
               </div>
-              <div className="p-3">
-                <p className="font-medium text-sm text-primary truncate">{p.name}</p>
-                <p className="text-xs text-primary/40">{p.category}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="font-bold text-primary text-sm">₹{p.price.toLocaleString('en-IN')}</span>
-                  <Badge status={p.status} />
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -251,11 +266,10 @@ export default function AdminProducts() {
           <p className="text-sm text-primary/70 mb-6">Are you sure you want to delete <strong>{confirmDelete.name}</strong>? This action cannot be undone.</p>
           <div className="flex justify-end gap-3">
             <button className="btn-outline" onClick={() => setConfirmDelete(null)}>Cancel</button>
-            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" onClick={() => { deleteProduct(confirmDelete.id); setConfirmDelete(null); }}>Delete</button>
+            <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" onClick={() => { if (deleteProduct) deleteProduct(confirmDelete.id); setConfirmDelete(null); }}>Delete</button>
           </div>
         </Modal>
       )}
     </div>
   );
 }
-
