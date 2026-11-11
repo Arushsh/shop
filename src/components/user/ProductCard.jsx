@@ -99,7 +99,7 @@ export default function ProductCard({ product, showQuickAdd = true }) {
             ) : (
               <button
                 onClick={handleQuickAdd}
-                className="w-full py-2.5 bg-primary/90 hover:bg-primary text-white text-xs font-semibold rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-1.5 shadow-lg backdrop-blur-sm"
+                className="w-full py-2.5 bg-primary/95 hover:bg-primary text-white text-xs font-semibold rounded-xl opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-1.5 shadow-lg backdrop-blur-sm"
               >
                 <ShoppingBag size={14} /> Quick Add ({product.sizes?.[0] || 'M'})
               </button>

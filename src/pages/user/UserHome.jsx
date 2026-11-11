@@ -6,44 +6,14 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import ProductCard from '../../components/user/ProductCard';
+import ProductShowcaseHero from '../../components/user/ProductShowcaseHero';
 import { MOCK_CATEGORIES, MOCK_COLLECTIONS, MOCK_REVIEWS, MOCK_COUPONS } from '../../data/mockData';
 
 export default function UserHome() {
   const navigate = useNavigate();
   const { products } = useStore();
 
-  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const [copiedCoupon, setCopiedCoupon] = useState('');
-
-  const heroSlides = [
-    {
-      badge: 'Atelier Sartorial 2025',
-      title: 'Style That Defines You.',
-      subtitle: 'Sculpted silhouettes, Giza long-staple cotton, and pure Normandy linen tailored for effortless modern distinction.',
-      ctaPrimary: 'Shop Bespoke Collection',
-      ctaSecondary: 'Explore Autumn Lookbook',
-      link: '/shop?tag=new',
-      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&h=900&fit=crop',
-    },
-    {
-      badge: 'Holiday Festive Edit',
-      title: 'Artisanal Silk & Royal Heritage.',
-      subtitle: 'Embroidered raw matka bundis and hand-spun linen kurtas crafted for memorable family celebrations.',
-      ctaPrimary: 'Shop Ethnic Wear',
-      ctaSecondary: 'View Heritage Edit',
-      link: '/shop?category=Ethnic%20Wear',
-      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&h=900&fit=crop',
-    },
-    {
-      badge: 'Workwear Redefined',
-      title: 'The Non-Iron Executive Oxford.',
-      subtitle: 'Crisp split-yoke collars and natural mechanical stretch engineered for 14-hour workday comfort.',
-      ctaPrimary: 'Shop Formal Shirts',
-      ctaSecondary: 'View Office Essentials',
-      link: '/shop?category=Shirts',
-      image: 'https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=1600&h=900&fit=crop',
-    },
-  ];
 
   const newArrivals = products.filter(p => p.isNew).slice(0, 4);
   const trendingProducts = products.filter(p => p.isTrending).slice(0, 4);
@@ -56,81 +26,9 @@ export default function UserHome() {
   };
 
   return (
-    <div className="space-y-16 pb-20">
-      {/* 1. HERO CAROUSEL */}
-      <section className="relative rounded-3xl overflow-hidden bg-primary text-white shadow-2xl min-h-[500px] sm:min-h-[580px] flex items-center">
-        {/* Background Image with Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroSlides[activeHeroSlide].image}
-            alt="Hero background"
-            className="w-full h-full object-cover object-center transition-all duration-700 transform scale-100"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/85 to-transparent/40" />
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 py-16 w-full">
-          <div className="max-w-2xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/20 border border-accent/40 text-accent text-xs font-bold tracking-wider uppercase backdrop-blur-md">
-              <Sparkles size={14} /> {heroSlides[activeHeroSlide].badge}
-            </div>
-
-            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1] text-white">
-              {heroSlides[activeHeroSlide].title}
-            </h1>
-
-            <p className="text-sm sm:text-base text-white/80 leading-relaxed max-w-xl">
-              {heroSlides[activeHeroSlide].subtitle}
-            </p>
-
-            <div className="pt-2 flex flex-wrap gap-4">
-              <button
-                onClick={() => navigate(heroSlides[activeHeroSlide].link)}
-                className="bg-accent hover:bg-accent-600 text-white px-7 py-3.5 rounded-full text-xs font-bold tracking-wider uppercase transition-all shadow-xl hover:scale-105 flex items-center gap-2"
-              >
-                {heroSlides[activeHeroSlide].ctaPrimary} <ArrowRight size={15} />
-              </button>
-              <button
-                onClick={() => navigate('/shop')}
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3.5 rounded-full text-xs font-bold tracking-wider uppercase transition-all backdrop-blur-md"
-              >
-                {heroSlides[activeHeroSlide].ctaSecondary}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Carousel controls */}
-        <div className="absolute bottom-6 right-6 sm:right-12 z-20 flex items-center gap-3">
-          <button
-            onClick={() => setActiveHeroSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
-            className="p-2.5 rounded-full bg-white/20 hover:bg-white text-white hover:text-primary backdrop-blur-md transition-all"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <div className="flex gap-1.5">
-            {heroSlides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveHeroSlide(i)}
-                className={`h-2 rounded-full transition-all ${
-                  activeHeroSlide === i ? 'w-8 bg-accent' : 'w-2 bg-white/40'
-                }`}
-                aria-label={`Slide ${i + 1}`}
-              />
-            ))}
-          </div>
-          <button
-            onClick={() => setActiveHeroSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1))}
-            className="p-2.5 rounded-full bg-white/20 hover:bg-white text-white hover:text-primary backdrop-blur-md transition-all"
-            aria-label="Next slide"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      </section>
+    <div className="space-y-12 sm:space-y-16 pb-20">
+      {/* 1. HAUTE BESPOKE HERO SCROLL SHOWCASE */}
+      <ProductShowcaseHero />
 
       {/* 2. PROMOTIONAL COUPON TICKER */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">

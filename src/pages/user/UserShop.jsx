@@ -262,10 +262,18 @@ export default function UserShop() {
 
       {/* Main Layout: Filters Sidebar + Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        {/* Mobile Filter Backdrop */}
+        {mobileFilterOpen && (
+          <div
+            className="fixed inset-0 bg-primary/60 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+            onClick={() => setMobileFilterOpen(false)}
+          />
+        )}
+
         {/* FILTERS SIDEBAR */}
         <aside
           className={`bg-white rounded-3xl p-6 border border-primary/10 shadow-sm space-y-6 lg:sticky lg:top-28 ${
-            mobileFilterOpen ? 'fixed inset-4 z-50 overflow-y-auto block' : 'hidden lg:block'
+            mobileFilterOpen ? 'fixed inset-x-4 inset-y-6 z-50 overflow-y-auto block shadow-2xl max-w-md mx-auto' : 'hidden lg:block'
           }`}
         >
           <div className="flex items-center justify-between pb-3 border-b border-primary/8">
