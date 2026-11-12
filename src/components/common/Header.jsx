@@ -65,17 +65,17 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-primary/10 transition-all">
       {/* Top Announcement Bar */}
-      <div className="bg-primary text-white text-[11px] py-1.5 px-4 flex items-center justify-between font-medium tracking-wide">
+      <div className="bg-atelier-dark text-white text-[11px] py-2 px-4 flex items-center justify-between font-medium tracking-wide border-b border-white/10">
         <div className="flex-1 text-center flex items-center justify-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-          <span>Complimentary Express Delivery on orders above ₹2,999 • Code: <strong className="text-accent underline">THREADLINE10</strong></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-atelier-champagne animate-pulse" />
+          <span>Complimentary Express Delivery on orders above ₹2,999 · Code: <span className="px-2 py-0.5 rounded bg-atelier-champagne/20 text-atelier-champagne font-mono font-bold tracking-wider border border-atelier-champagne/30">THREADLINE10</span></span>
         </div>
         <Link
           to="/admin"
-          className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-accent/20 hover:bg-accent text-accent hover:text-white transition-all text-[11px] font-bold border border-accent/40 flex-shrink-0"
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-atelier-champagne hover:text-atelier-dark text-white/90 transition-all text-[11px] font-bold border border-white/20 flex-shrink-0"
           title="Go to Admin Dashboard"
         >
-          <ShieldCheck size={12} /> Admin Dashboard
+          <ShieldCheck size={12} className="text-atelier-champagne" /> <span>Admin Dashboard</span>
         </Link>
       </div>
 
@@ -93,10 +93,10 @@ export default function Header() {
 
           {/* Brand Logo */}
           <Link to="/" className="flex flex-col items-start group">
-            <span className="font-extrabold text-2xl sm:text-3xl tracking-tighter text-primary font-sans group-hover:text-primary-700 transition-colors">
+            <span className="font-serif font-black text-2xl sm:text-3xl tracking-tighter text-primary group-hover:text-atelier-champagne transition-colors">
               THREADLINE
             </span>
-            <span className="text-[9px] uppercase tracking-[0.25em] text-accent font-semibold -mt-1">
+            <span className="text-[9px] uppercase tracking-[0.25em] text-atelier-champagne font-semibold -mt-1">
               Atelier & Storefront
             </span>
           </Link>

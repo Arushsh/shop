@@ -6,6 +6,11 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['"Cormorant Garamond"', '"Playfair Display"', 'Georgia', 'serif'],
+        display: ['"Playfair Display"', '"Cormorant Garamond"', 'Georgia', 'serif'],
+      },
       colors: {
         primary: {
           DEFAULT: '#172B3A',
@@ -33,9 +38,15 @@ export default {
           800: '#6E522F',
           900: '#4D391F',
         },
-      },
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        atelier: {
+          dark: '#171311',
+          darkSecondary: '#202B35',
+          navy: '#192E3D',
+          champagne: '#C9A16E',
+          gold: '#B88B54',
+          offwhite: '#F6F5F2',
+          muted: '#A4A4A4',
+        },
       },
       boxShadow: {
         card: '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px 0 rgba(0,0,0,0.04)',
