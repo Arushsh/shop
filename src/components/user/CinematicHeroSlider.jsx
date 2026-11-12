@@ -424,3 +424,4 @@ export default function CinematicHeroSlider() {
     </section>
   );
 }
+

@@ -14,7 +14,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <StatCard icon={DollarSign} label="Total Revenue" value={fmt(stats.totalRevenue)}
           sub={<span className="text-emerald-600 flex items-center gap-1"><TrendingUp size={11} /> +{stats.revenueGrowth}% this month</span>}
           iconBg="bg-accent/10" iconColor="text-accent" />
